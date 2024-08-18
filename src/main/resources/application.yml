@@ -1,0 +1,64 @@
+server:
+  port: 8080
+  tomcat.mbeanregistry.enabled: true
+
+logging:
+  level:
+    root: WARN
+    ru.jpoint.transactionslocksapp: DEBUG
+    org.springframework.orm.jpa: DEBUG
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+    allow-circular-references: true
+  sql.init.mode: always
+#  main.allow-circular-references: true
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: kafka:9093
+          auto-create-topics: true
+          auto-add-partitions: true
+          consumer-properties:
+            max.poll.records: 200
+            fetch.max.wait.ms: 100
+      bindings:
+        likesConsumer-in-0:
+          destination: ru.jpoint.likes
+          group: likes-consumer-group
+          consumer:
+            maxAttempts: 1
+#            batch-mode: true
+            concurrency: 5
+        likesProducer-out-0:
+          destination: ru.jpoint.likes
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        ddl-auto: none
+#        show_sql: true
+#        format_sql: true
+  datasource:
+    hikari:
+      transaction-isolation: TRANSACTION_READ_COMMITTED # TRANSACTION_READ_COMMITTED / TRANSACTION_REPEATABLE_READ / TRANSACTION_SERIALIZABLE
+      maximum-pool-size: 10
+#      connection-timeout: 5000
+#      auto-commit: off
+    url: jdbc:postgresql://postgres:5432/database
+    username: postgres
+    password: password
+
+management:
+  endpoints.web.exposure.include: 'prometheus, health'
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+
